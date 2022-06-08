@@ -8,7 +8,7 @@ short_day_names = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
 clear_minutes = lambda t: ":".join(t.split(":")[:-1])
 
 
-def prepare_working_hours(regular_daily):
+def prepare_working_hours(regular_daily) -> list[str]:
     periods = []
     fd = short_day_names[0]
     for i in range(len(regular_daily) - 1):
@@ -23,11 +23,10 @@ def prepare_working_hours(regular_daily):
             else:
                 periods.append(f"{fd} {time_from}-{time_till}")
             fd = short_day_names[index + 1]
-    else:
-        if fd == short_day_names[-1]:
-            periods.append(f"{fd} {time_from}-{next_time_till}")
-        elif fd == short_day_names[0]:
-            periods.append(f"{fd}-{short_day_names[-1]} {time_from}-{next_time_till}")
+    if fd == short_day_names[-1]:
+        periods.append(f"{fd} {time_from}-{next_time_till}")
+    elif fd == short_day_names[0]:
+        periods.append(f"{fd}-{short_day_names[-1]} {time_from}-{next_time_till}")
     return periods
 
 
@@ -40,20 +39,27 @@ def get_or_none(obj, *keys: list[str]) -> Any:
     return obj
 
 
-def parse():
+def parse() -> dict:
     url = "https://api.kfc.com/api/store/v2/store.get_restaurants?showClosed=true"
-    data = json.loads(requests.get(url).content)
+    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " \
+                 "Chrome/102.0.5005.63 Safari/537.36"
+    headers = {'User-Agent': user_agent}
+    data = json.loads(requests.get(url, headers=headers).content)
     stores = []
     for store in data["searchResults"]:
         st = store.get("storePublic")
+
         address = get_or_none(st, "contacts", "streetAddress", "ru")
         if address is not None:
             address = " ".join(address.split()[1:])
+
         latlon = get_or_none(st, "contacts", "coordinates", "geometry", "coordinates")
         name = get_or_none(st, "title", "ru")
+
         _phone1 = get_or_none(st, "contacts", "phone", "number")
         _phone2 = get_or_none(st, "contacts", "phoneNumber")
         phones = list({phone.split()[0] for phone in [_phone1, _phone2] if phone not in (None, "")})
+
         if get_or_none(st, "status") == "Open" and get_or_none(st, "openingHours", "regularDaily"):
             working_hours = prepare_working_hours(st["openingHours"]["regularDaily"])
         else:
