@@ -44,8 +44,16 @@ def get_or_none(obj, *keys: list[str]) -> Any:
     return obj
 
 
+def get_page(url, headers=headers):
+    try:
+        page = requests.get(url, headers=headers)
+        return page.content
+    except requests.exceptions.RequestException:
+        raise requests.exceptions.RequestException(f"download page error {url=}")
+
+
 def parse() -> dict:
-    data = json.loads(requests.get(url, headers=headers).content)
+    data = json.loads(get_page(url))
     stores = []
     for store in data["searchResults"]:
         st = store.get("storePublic")
