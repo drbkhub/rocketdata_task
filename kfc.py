@@ -3,6 +3,11 @@ from typing import Any
 
 import requests
 
+url = "https://api.kfc.com/api/store/v2/store.get_restaurants?showClosed=true"
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " \
+             "Chrome/102.0.5005.63 Safari/537.36"
+headers = {'User-Agent': user_agent}
+
 short_day_names = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
 
 clear_minutes = lambda t: ":".join(t.split(":")[:-1])
@@ -40,10 +45,6 @@ def get_or_none(obj, *keys: list[str]) -> Any:
 
 
 def parse() -> dict:
-    url = "https://api.kfc.com/api/store/v2/store.get_restaurants?showClosed=true"
-    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " \
-                 "Chrome/102.0.5005.63 Safari/537.36"
-    headers = {'User-Agent': user_agent}
     data = json.loads(requests.get(url, headers=headers).content)
     stores = []
     for store in data["searchResults"]:
